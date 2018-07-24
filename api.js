@@ -25,14 +25,12 @@ router.post("/log-data", (req, res) => {
     .catch(err => res.json(err));
 });
 
-router
-  .get("/current", (req, res) => {
-    Data.findOne()
-      .sort({ timeStamp: -1 })
-      .then(data => res.json(data))
-      .catch(err => res.json(err));
-  })
-  .catch(err => res.json(err));
+router.get("/current", (req, res) => {
+  Data.findOne()
+    .sort({ timeStamp: -1 })
+    .then(data => res.json(data))
+    .catch(err => res.json(err));
+});
 
 router.get("/get-data", (req, res) => {
   let startDate = new Date();
