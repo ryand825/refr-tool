@@ -94,11 +94,11 @@ let timeScale = {
     console.log(timeScale.maxDate);
   },
   shiftDown: function() {
-    timeScale.maxDate.setDate(timeScale.maxDate.getDate() - 1);
+    timeScale.maxDate.setHours(timeScale.maxDate.getHours() - 1);
     timeScale.update();
   },
   shiftUp: function() {
-    timeScale.maxDate.setDate(timeScale.maxDate.getDate() + 1);
+    timeScale.maxDate.setHours(timeScale.maxDate.getHours() + 1);
     timeScale.update();
   },
   rangeDown: function() {
@@ -119,7 +119,7 @@ const updateGraphScale = (max, range) => {
 
   let min = new Date(max);
   myChart.options.scales.xAxes[0].time.min = min;
-  min.setDate(max.getDate() - range);
+  min.setHours(max.getHours() - range);
 
   myChart.update();
 };
@@ -200,9 +200,9 @@ let myChart = new Chart(ctx, {
         backgroundColor: ["rgba(66,134,244, 0.2)"],
         borderColor: ["rgba(66,134,244,1)"],
         borderWidth: 1,
-        borderDash: [5, 5],
+        // borderDash: [5, 5],
         yAxisID: "temperature",
-        pointRadius: 2
+        pointRadius: 1
       },
       {
         label: "Liquid Temperature",
@@ -211,10 +211,10 @@ let myChart = new Chart(ctx, {
         data: graphData.liquidTemperature,
         backgroundColor: ["rgba(214,8,46, 0.2)"],
         borderColor: ["rgba(214,8,46,1)"],
-        borderWidth: 2,
-        borderDash: [5, 5],
+        borderWidth: 1,
+        // borderDash: [5, 5],
         yAxisID: "temperature",
-        pointRadius: 2
+        pointRadius: 1
       },
       {
         label: "Suction Pressure",
@@ -223,10 +223,10 @@ let myChart = new Chart(ctx, {
         data: graphData.suctionPressure,
         backgroundColor: ["rgba(66,244,223, 0.2)"],
         borderColor: ["rgba(66,244,223,1)"],
-        borderWidth: 2,
-        borderDash: [5, 5],
+        borderWidth: 1,
+        // borderDash: [5, 5],
         yAxisID: "pressure",
-        pointRadius: 2
+        pointRadius: 1
       },
       {
         label: "Liquid Pressure",
@@ -235,16 +235,17 @@ let myChart = new Chart(ctx, {
         data: graphData.liquidPressure,
         backgroundColor: ["rgba(244, 152, 66, 0.2)"],
         borderColor: ["rgba(244, 152, 66,1)"],
-        borderWidth: 2,
-        borderDash: [5, 5],
+        borderWidth: 1,
+        // borderDash: [5, 5],
         yAxisID: "pressure",
-        pointRadius: 2
+        pointRadius: 1
       }
     ]
   },
   options: {
     responsive: true,
     maintainAspectRatio: false,
+
     title: {
       text: "Chart.js Time Scale"
     },
