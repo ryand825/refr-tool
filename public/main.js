@@ -1,18 +1,297 @@
-const suctionTemp = document.getElementById("suction-temp");
-let temp = 0;
+const suctionTemperature = document.getElementById("suction-temperature");
+const suctionPressure = document.getElementById("suction-pressure");
+const liquidTemperature = document.getElementById("liquid-temperature");
+const liquidPressure = document.getElementById("liquid-pressure");
 
-// fetch("https://jsonplaceholder.typicode.com/posts/1")
-//   .then(res => res.json())
-//   .then(json => (suctionTemp.innerHTML = json.body));
+let currentData = {
+  current: [
+    {
+      name: "Liquid Line",
+      temperature: 1,
+      pressure: 2
+    },
+    {
+      name: "Suction Line",
+      temperature: 3,
+      pressure: 4
+    }
+  ]
+};
 
-// setInterval(() => {
-//   temp++;
-//   suctionTemp.innerHTML = temp;
-// }, 10);
+const now = new Date();
 
-// while (1 === 1) {
-//   temp++;
-// }
-// for (let i = 0; i < 150; i++) {
-//   temp++;
-// }
+let graphData = {};
+
+const currentDiv = document.querySelector(".current-data");
+
+currentDiv.template = `<div class="card">
+      <div class="card-title">{{name}}</div>
+      <div class="data-header">Temperature</div>
+      <div class="data-header">Pressure</div>
+      <div class="data-header">Superheat</div>
+      <div class="data-display" id="suction-temperature">
+        <div>{{temperature}}</div>
+      </div>
+      <div class="data-display" id="suction-pressure">
+        <div>{{pressure}}</div>
+      </div>
+      <div class="data-display">??</div>
+    </div>`;
+currentDiv.render = function render(data) {
+  const testArr = data.map(data => {
+    return this.template.replace(/\{\{\s?(\w+)\s?\}\}/g, (match, variable) => {
+      // console.log(data[variable]);
+
+      return data[variable] || "??";
+    });
+  });
+  console.log(testArr);
+
+  // this.innerHTML = testArr.toString();
+  this.innerHTML = "";
+  testArr.forEach(data => {
+    this.innerHTML += data;
+  });
+};
+
+const displayCurrent = new Proxy(currentData, {
+  set: (target, property, value) => {
+    target[property] = value;
+    currentDiv.render(currentData.current);
+    return true;
+  }
+});
+
+fetch("http://localhost:5000/api/current")
+  .then(res => res.json())
+  .then(json => {
+    const formatData = [
+      {
+        name: "Suction Line",
+        temperature: Math.round(json.suction.temperature * 10) / 10,
+        pressure: Math.round(json.suction.pressure)
+      },
+      {
+        name: "Liquid Line",
+        temperature: Math.round(json.liquid.temperature * 10) / 10,
+        pressure: Math.round(json.liquid.pressure)
+      }
+    ];
+    displayCurrent.current = formatData;
+  });
+
+/////////////////
+// DISPLAY GRAPH
+////////////////
+
+let timeScale = {
+  dateRange: 1,
+  maxDate: new Date(),
+  initialize: function(date) {
+    timeScale.maxDate = new Date(date);
+    console.log(timeScale.maxDate);
+    timeScale.update();
+    console.log(timeScale.maxDate);
+  },
+  shiftDown: function() {
+    timeScale.maxDate.setDate(timeScale.maxDate.getDate() - 1);
+    timeScale.update();
+  },
+  shiftUp: function() {
+    timeScale.maxDate.setDate(timeScale.maxDate.getDate() + 1);
+    timeScale.update();
+  },
+  rangeDown: function() {
+    timeScale.dateRange > 1 && timeScale.dateRange--;
+    timeScale.update();
+  },
+  rangeUp: function() {
+    timeScale.dateRange++;
+    timeScale.update();
+  },
+  update: function() {
+    updateGraphScale(timeScale.maxDate, timeScale.dateRange);
+  }
+};
+
+const updateGraphScale = (max, range) => {
+  myChart.options.scales.xAxes[0].time.max = new Date(max);
+
+  let min = new Date(max);
+  myChart.options.scales.xAxes[0].time.min = min;
+  min.setDate(max.getDate() - range);
+
+  myChart.update();
+};
+
+fetch("http://localhost:5000/api/get-data")
+  .then(res => res.json())
+  .then(json => {
+    let testDate = new Date(json[json.length - 1].timeStamp);
+    // testDate.setDate(testDate.getDate());
+    // testDate = json[json.length - 1].timeStamp;
+    console.log(testDate);
+    timeScale.initialize(testDate);
+    graphData = {
+      suctionTemperature: formatDataLog(json, "suction", "temperature"),
+      suctionPressure: formatDataLog(json, "suction", "pressure"),
+      liquidTemperature: formatDataLog(json, "liquid", "temperature"),
+      liquidPressure: formatDataLog(json, "liquid", "pressure")
+    };
+    // setTimeout(() => timeScale.shiftDown(), 5000);
+    updateGraph(graphData, testDate);
+  });
+
+var timeFormat = "MM/DD/YYYY HH:mm";
+
+function newDate(days) {
+  return moment()
+    .add(days, "d")
+    .toDate();
+}
+
+function newDateString(days) {
+  return moment()
+    .add(days, "d")
+    .format(timeFormat);
+}
+
+formatDataLog = (dataLog, line, type) => {
+  const dataArr = dataLog.map(data => {
+    return {
+      x: moment(data.timeStamp).format("MM/DD/YYYY HH:mm"),
+      y: data[line][type]
+    };
+  });
+  return dataArr.filter(data => {
+    if (type == "temperature") {
+      return data.y < 100;
+    } else {
+      return data.y < 1000;
+    }
+  });
+};
+
+const updateGraph = (data, date) => {
+  // console.log(data);
+
+  myChart.data.datasets.forEach(dataSet => {
+    let labelString = dataSet.label.replace(/\s/g, "");
+    labelString = labelString.charAt(0).toLowerCase() + labelString.slice(1);
+    dataSet.data = data[labelString];
+  });
+  myChart.update();
+};
+
+const ctx = document.getElementById("myChart");
+let myChart = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: [
+      // Date Objects
+      // newDate(6)
+    ],
+    datasets: [
+      {
+        label: "Suction Temperature",
+        lineTension: 0,
+        fill: false,
+        data: graphData.suctionTemperature,
+        backgroundColor: ["rgba(66,134,244, 0.2)"],
+        borderColor: ["rgba(66,134,244,1)"],
+        borderWidth: 1,
+        borderDash: [5, 5],
+        yAxisID: "temperature",
+        pointRadius: 2
+      },
+      {
+        label: "Liquid Temperature",
+        lineTension: 0,
+        fill: false,
+        data: graphData.liquidTemperature,
+        backgroundColor: ["rgba(214,8,46, 0.2)"],
+        borderColor: ["rgba(214,8,46,1)"],
+        borderWidth: 2,
+        borderDash: [5, 5],
+        yAxisID: "temperature",
+        pointRadius: 2
+      },
+      {
+        label: "Suction Pressure",
+        lineTension: 0,
+        fill: false,
+        data: graphData.suctionPressure,
+        backgroundColor: ["rgba(66,244,223, 0.2)"],
+        borderColor: ["rgba(66,244,223,1)"],
+        borderWidth: 2,
+        borderDash: [5, 5],
+        yAxisID: "pressure",
+        pointRadius: 2
+      },
+      {
+        label: "Liquid Pressure",
+        lineTension: 0,
+        fill: false,
+        data: graphData.liquidPressure,
+        backgroundColor: ["rgba(244, 152, 66, 0.2)"],
+        borderColor: ["rgba(244, 152, 66,1)"],
+        borderWidth: 2,
+        borderDash: [5, 5],
+        yAxisID: "pressure",
+        pointRadius: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    title: {
+      text: "Chart.js Time Scale"
+    },
+    scales: {
+      xAxes: [
+        {
+          type: "time",
+          time: {
+            max: new Date(),
+            // displayFormats: {
+            //   hour: "M/D hA"
+            // },
+            // format: timeFormat,
+            // round: "day",
+            tooltipFormat: "ll HH:mm"
+          },
+          bounds: {
+            ticks: {
+              max: 5
+            }
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "Date"
+          }
+        }
+      ],
+      yAxes: [
+        {
+          id: "temperature",
+          type: "linear",
+          position: "left",
+          scaleLabel: {
+            display: true,
+            labelString: "Degrees F"
+          }
+        },
+        {
+          id: "pressure",
+          type: "linear",
+          scaleLabel: {
+            display: true,
+            labelString: "PSI"
+          },
+          position: "right"
+        }
+      ]
+    }
+  }
+});

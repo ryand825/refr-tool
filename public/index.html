@@ -2,36 +2,48 @@
 <html lang="en">
 
 <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.1/css/all.css" integrity="sha384-O8whS3fhG2OnA5Kas0Y9l3cfpmYjapjI0E4theH4iuMD+pLhbf6JI0jIMfYcK3yZ"
+  crossorigin="anonymous">
 <link rel="stylesheet" href="./styles.css">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
+  <title>Refrigeration Data</title>
 </head>
 
 <body>
   <div class="container">
-    <div class="card">
-      <div class="card-title">Suction Line</div>
-      <div class="data-header">Pressure</div>
-      <div class="data-header">Temperature</div>
-      <div class="data-header">Superheat</div>
-      <div class="data-display" id="suction-temp">??</div>
-      <div class="data-display">??</div>
-      <div class="data-display">??</div>
+    <!-- Current Data  -->
+    <div class="current-data">
+      <span class="loading"></span>
     </div>
-    <div class="card">
-      <div class="card-title">Liquid Line</div>
-      <div class="data-header">Pressure</div>
-      <div class="data-header">Temperature</div>
-      <div class="data-header">Subcooling</div>
-      <div class="data-display" id="liquid-temp">??</div>
-      <div class="data-display">??</div>
-      <div class="data-display">??</div>
+    <!-- Graph -->
+    <div id="chart-container" class="canvas-container hidden">
+      <canvas id="myChart" width="400" height="400"></canvas>
+      <div class="graph-buttons">
+        <button onclick="timeScale.shiftDown()">
+          <i class="fas fa-backward fa-2x"></i>
+        </button>
+        <button onclick="timeScale.rangeDown()">
+          <i class="fas fa-minus fa-2x"></i>
+
+        </button>
+        <button onclick="timeScale.rangeUp()">
+          <i class="fas fa-plus fa-2x"></i>
+
+        </button>
+        <button onclick="timeScale.shiftUp()">
+          <i class="fas fa-forward fa-2x"></i>
+        </button>
+
+      </div>
     </div>
   </div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.js"></script>
+  <script src="./main.js"></script>
 </body>
 
 </html>
