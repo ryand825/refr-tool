@@ -22,13 +22,14 @@ router.post("/log-data", (req, res) => {
   newData
     .save()
     .then(data => res.json(data))
-    .catch(err => console.log(`Erorr: ${err}`));
+    .catch(err => res.json(err));
 });
 
 router.get("/current", (req, res) => {
   Data.findOne()
     .sort({ timeStamp: -1 })
-    .then(data => res.json(data));
+    .then(data => res.json(data))
+    .catch(err => res.json(err));
 });
 
 router.get("/get-data", (req, res) => {
@@ -36,7 +37,9 @@ router.get("/get-data", (req, res) => {
   startDate.setDate(startDate.getDate() - 30);
   Data.find({
     timeStamp: { $gte: startDate }
-  }).then(data => res.json(data));
+  })
+    .then(data => res.json(data))
+    .catch(err => res.json(err));
 });
 
 module.exports = router;
