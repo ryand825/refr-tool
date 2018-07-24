@@ -163,13 +163,14 @@ formatDataLog = (dataLog, line, type) => {
       y: data[line][type]
     };
   });
-  return dataArr.filter(data => {
-    if (type == "temperature") {
-      return data.y < 100;
-    } else {
-      return data.y < 1000;
-    }
-  });
+  return dataArr;
+  // return dataArr.filter(data => {
+  //   if (type == "temperature") {
+  //     return data.y < 100;
+  //   } else {
+  //     return data.y < 1000;
+  //   }
+  // });
 };
 
 const updateGraph = (data, date) => {
