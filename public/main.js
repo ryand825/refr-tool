@@ -62,7 +62,7 @@ const displayCurrent = new Proxy(currentData, {
   }
 });
 
-fetch("http://localhost:5000/api/current")
+fetch(`/api/current`)
   .then(res => res.json())
   .then(json => {
     const formatData = [
@@ -124,7 +124,7 @@ const updateGraphScale = (max, range) => {
   myChart.update();
 };
 
-fetch("http://localhost:5000/api/get-data")
+fetch("/api/get-data")
   .then(res => res.json())
   .then(json => {
     let testDate = new Date(json[json.length - 1].timeStamp);
