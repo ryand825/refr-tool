@@ -29,16 +29,24 @@ currentDiv.template = `<div class="card">
       <div class="data-header">Temperature</div>
       <div class="data-header">Pressure</div>
       <div class="data-header">Superheat</div>
-      <div class="data-display" id="suction-temperature">
-        <div>{{temperature}}</div>
+      <div onclick="activeDataSets.toggleDataSet('{{idName}}Temperature', this)" 
+      class="data-display selected" 
+      id="{{idName}}-temperature">
+        <div>
+        {{temperature}}
+        <div class="tooltip">Select data to remove</div>
+        </div>
       </div>
-      <div class="data-display" id="suction-pressure">
+      <div onclick="activeDataSets.toggleDataSet('{{idName}}Pressure', this)" 
+      class="data-display selected" 
+      id="{{idName}}-pressure">
         <div>{{pressure}}</div>
       </div>
       <div class="data-display">??</div>
     </div>`;
 currentDiv.render = function render(data) {
   const testArr = data.map(data => {
+    data.idName = data.name.split(" ")[0].toLowerCase();
     return this.template.replace(/\{\{\s?(\w+)\s?\}\}/g, (match, variable) => {
       // console.log(data[variable]);
 
@@ -62,7 +70,7 @@ const displayCurrent = new Proxy(currentData, {
   }
 });
 
-fetch(`/api/current`)
+fetch("/api/current")
   .then(res => res.json())
   .then(json => {
     const formatData = [
@@ -124,6 +132,30 @@ const updateGraphScale = (max, range) => {
   myChart.update();
 };
 
+let activeDataSets = {
+  suctionTemperature: true,
+  suctionPressure: true,
+  liquidTemperature: true,
+  liquidPressure: true,
+
+  toggleDataSet: (name, element) => {
+    activeDataSets[name] = !activeDataSets[name];
+    activeDataSets.updateActiveSets();
+
+    activeDataSets[name]
+      ? element.classList.add("selected")
+      : element.classList.remove("selected");
+  },
+  updateActiveSets: () => {
+    myChart.data.datasets.forEach(dataSet => {
+      let labelString = dataSet.label.replace(/\s/g, "");
+      labelString = labelString.charAt(0).toLowerCase() + labelString.slice(1);
+      dataSet.hidden = !activeDataSets[labelString];
+    });
+    myChart.update();
+  }
+};
+
 fetch("/api/get-data")
   .then(res => res.json())
   .then(json => {
@@ -180,6 +212,7 @@ const updateGraph = (data, date) => {
     let labelString = dataSet.label.replace(/\s/g, "");
     labelString = labelString.charAt(0).toLowerCase() + labelString.slice(1);
     dataSet.data = data[labelString];
+    dataSet.hidden = !activeDataSets[labelString];
   });
   myChart.update();
 };
@@ -246,7 +279,9 @@ let myChart = new Chart(ctx, {
   options: {
     responsive: true,
     maintainAspectRatio: false,
-
+    legend: {
+      display: false
+    },
     title: {
       text: "Chart.js Time Scale"
     },
