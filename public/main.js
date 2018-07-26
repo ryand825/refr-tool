@@ -3,6 +3,8 @@ const suctionPressure = document.getElementById("suction-pressure");
 const liquidTemperature = document.getElementById("liquid-temperature");
 const liquidPressure = document.getElementById("liquid-pressure");
 
+const mobileView = window.innerWidth < 768 ? true : false;
+
 let currentData = {
   current: [
     {
@@ -24,36 +26,38 @@ let graphData = {};
 
 const currentDiv = document.querySelector(".current-data");
 
+//<div class="tooltip">Select data to remove</div>
+
 currentDiv.template = `<div class="card">
       <div class="card-title">{{name}}</div>
       <div class="data-header">Temperature</div>
       <div class="data-header">Pressure</div>
-      <div class="data-header">Superheat</div>
+      <div class="data-header">{{calculated}}</div>
       <div onclick="activeDataSets.toggleDataSet('{{idName}}Temperature', this)" 
       class="data-display selected" 
       id="{{idName}}-temperature">
         <div>
         {{temperature}}
-        <div class="tooltip">Select data to remove</div>
+        <span class="data-affix">°F</span>
         </div>
+        <span class="check-box far fa-check-square fa-lg" />
       </div>
       <div onclick="activeDataSets.toggleDataSet('{{idName}}Pressure', this)" 
       class="data-display selected" 
       id="{{idName}}-pressure">
-        <div>{{pressure}}</div>
+        <div>{{pressure}} <span class="data-affix">PSI</span></div>
+        <span class="check-box far fa-check-square fa-lg" />
       </div>
-      <div class="data-display">??</div>
+      <div class="data-display"><div>?? <span class="data-affix">°{{calculated}}</span></div></div>
     </div>`;
 currentDiv.render = function render(data) {
   const testArr = data.map(data => {
     data.idName = data.name.split(" ")[0].toLowerCase();
+    data.calculated = data.idName === "suction" ? "Superheat" : "Subcooling";
     return this.template.replace(/\{\{\s?(\w+)\s?\}\}/g, (match, variable) => {
-      // console.log(data[variable]);
-
       return data[variable] || "??";
     });
   });
-  console.log(testArr);
 
   // this.innerHTML = testArr.toString();
   this.innerHTML = "";
@@ -97,9 +101,7 @@ let timeScale = {
   maxDate: new Date(),
   initialize: function(date) {
     timeScale.maxDate = new Date(date);
-    console.log(timeScale.maxDate);
     timeScale.update();
-    console.log(timeScale.maxDate);
   },
   shiftDown: function() {
     timeScale.maxDate.setHours(timeScale.maxDate.getHours() - 1);
@@ -142,9 +144,17 @@ let activeDataSets = {
     activeDataSets[name] = !activeDataSets[name];
     activeDataSets.updateActiveSets();
 
-    activeDataSets[name]
-      ? element.classList.add("selected")
-      : element.classList.remove("selected");
+    const check = element.getElementsByClassName("check-box")[0];
+
+    if (activeDataSets[name]) {
+      element.classList.add("selected");
+      check.classList.add("fa-check-square");
+      check.classList.remove("fa-square");
+    } else {
+      element.classList.remove("selected");
+      check.classList.remove("fa-check-square");
+      check.classList.add("fa-square");
+    }
   },
   updateActiveSets: () => {
     myChart.data.datasets.forEach(dataSet => {
@@ -162,7 +172,6 @@ fetch("/api/get-data")
     let testDate = new Date(json[json.length - 1].timeStamp);
     // testDate.setDate(testDate.getDate());
     // testDate = json[json.length - 1].timeStamp;
-    console.log(testDate);
     timeScale.initialize(testDate);
     graphData = {
       suctionTemperature: formatDataLog(json, "suction", "temperature"),
@@ -206,8 +215,6 @@ formatDataLog = (dataLog, line, type) => {
 };
 
 const updateGraph = (data, date) => {
-  // console.log(data);
-
   myChart.data.datasets.forEach(dataSet => {
     let labelString = dataSet.label.replace(/\s/g, "");
     labelString = labelString.charAt(0).toLowerCase() + labelString.slice(1);
@@ -217,6 +224,8 @@ const updateGraph = (data, date) => {
   myChart.update();
 };
 
+const lightThemeLines = "rgba(0, 0, 0, .1)";
+const darkThemeLines = "rgba(255, 255, 255, .1)";
 const ctx = document.getElementById("myChart");
 let myChart = new Chart(ctx, {
   type: "line",
@@ -288,6 +297,9 @@ let myChart = new Chart(ctx, {
     scales: {
       xAxes: [
         {
+          gridLines: {
+            color: mobileView ? darkThemeLines : lightThemeLines
+          },
           type: "time",
           time: {
             max: new Date(),
@@ -311,6 +323,9 @@ let myChart = new Chart(ctx, {
       ],
       yAxes: [
         {
+          gridLines: {
+            color: mobileView ? darkThemeLines : lightThemeLines
+          },
           id: "temperature",
           type: "linear",
           position: "left",
@@ -320,6 +335,9 @@ let myChart = new Chart(ctx, {
           }
         },
         {
+          gridLines: {
+            color: mobileView ? darkThemeLines : lightThemeLines
+          },
           id: "pressure",
           type: "linear",
           scaleLabel: {
