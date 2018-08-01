@@ -1,4 +1,5 @@
 const express = require("express");
+
 const router = express.Router();
 // const mongoose = require("mongoose");
 
@@ -34,12 +35,16 @@ router.get("/current", (req, res) => {
 
 router.get("/get-data", (req, res) => {
   let startDate = new Date();
-  startDate.setDate(startDate.getDate() - 30);
-  Data.find({
-    timeStamp: { $gte: startDate }
-  })
-    .then(data => res.json(data))
-    .catch(err => res.json(err));
+  startDate.setDate(startDate.getDate() - 1);
+
+  Data.find({ timeStamp: { $gte: startDate } })
+    .sort({ timeStamp: 1 })
+    .exec((err, data) => {
+      if (err) {
+        res.json(err);
+      }
+      res.json(data);
+    });
 });
 
 module.exports = router;
