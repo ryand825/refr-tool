@@ -48,13 +48,13 @@ currentDiv.template = `<div class="card">
         <div>{{pressure}} <span class="data-affix">PSI</span></div>
         <span class="check-box far fa-check-square fa-lg" />
       </div>
-      <div class="data-display"><div>{{calcValue}} <span class="data-affix">°{{calculated}}</span></div></div>
+      <div class="data-display"><div class="calc-value">{{calcValue}} <span class="data-affix">°{{calculated}}</span></div></div>
     </div>`;
 currentDiv.render = function render(data) {
   console.log(data);
   const testArr = data.map(data => {
     data.idName = data.name.split(" ")[0].toLowerCase();
-    data.calculated = data.idName === "suction" ? "Superheat" : "Subcooling";
+    data.calculated = data.idName === "suction" ? "SH" : "SC";
     return this.template.replace(/\{\{\s?(\w+)\s?\}\}/g, (match, variable) => {
       return data[variable] || "??";
     });
