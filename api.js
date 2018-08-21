@@ -1,4 +1,5 @@
 const express = require("express");
+const ptcalc = require("./utils");
 
 const router = express.Router();
 // const mongoose = require("mongoose");
@@ -29,7 +30,17 @@ router.post("/log-data", (req, res) => {
 router.get("/current", (req, res) => {
   Data.findOne()
     .sort({ timeStamp: -1 })
-    .then(data => res.json(data))
+    .then(data => {
+      const superheat =
+        data.suction.temperature - ptcalc(data.suction.pressure);
+      const subcooling = data.liquid.temperature - ptcalc(data.liquid.pressure);
+      let dataObj = JSON.parse(JSON.stringify(data));
+      dataObj.superheat = superheat;
+      dataObj.subcooling = subcooling;
+
+      res.json(dataObj);
+      console.log(dataObj);
+    })
     .catch(err => res.json(err));
 });
 

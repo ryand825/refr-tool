@@ -48,9 +48,10 @@ currentDiv.template = `<div class="card">
         <div>{{pressure}} <span class="data-affix">PSI</span></div>
         <span class="check-box far fa-check-square fa-lg" />
       </div>
-      <div class="data-display"><div>?? <span class="data-affix">°{{calculated}}</span></div></div>
+      <div class="data-display"><div>{{calcValue}} <span class="data-affix">°{{calculated}}</span></div></div>
     </div>`;
 currentDiv.render = function render(data) {
+  console.log(data);
   const testArr = data.map(data => {
     data.idName = data.name.split(" ")[0].toLowerCase();
     data.calculated = data.idName === "suction" ? "Superheat" : "Subcooling";
@@ -81,12 +82,14 @@ fetch("/api/current")
       {
         name: "Suction Line",
         temperature: Math.round(json.suction.temperature * 10) / 10,
-        pressure: Math.round(json.suction.pressure)
+        pressure: Math.round(json.suction.pressure),
+        calcValue: Math.round(json.superheat * 10) / 10
       },
       {
         name: "Liquid Line",
         temperature: Math.round(json.liquid.temperature * 10) / 10,
-        pressure: Math.round(json.liquid.pressure)
+        pressure: Math.round(json.liquid.pressure),
+        calcValue: Math.round(json.subcooling * 10) / 10
       }
     ];
     displayCurrent.current = formatData;
@@ -205,13 +208,6 @@ formatDataLog = (dataLog, line, type) => {
     };
   });
   return dataArr;
-  // return dataArr.filter(data => {
-  //   if (type == "temperature") {
-  //     return data.y < 100;
-  //   } else {
-  //     return data.y < 1000;
-  //   }
-  // });
 };
 
 const updateGraph = (data, date) => {
