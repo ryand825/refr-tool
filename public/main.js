@@ -9,25 +9,22 @@ let currentData = {
   current: [
     {
       name: "Liquid Line",
-      temperature: 1,
-      pressure: 2
+      temperature: 0,
+      pressure: 0
     },
     {
       name: "Suction Line",
-      temperature: 3,
-      pressure: 4
+      temperature: 0,
+      pressure: 0
     }
   ]
 };
 
 const now = new Date();
-
 let graphData = {};
 
+// Template string
 const currentDiv = document.querySelector(".current-data");
-
-//<div class="tooltip">Select data to remove</div>
-
 currentDiv.template = `<div class="card">
       <div class="card-title">{{name}}</div>
       <div class="data-header">Temperature</div>
@@ -50,8 +47,9 @@ currentDiv.template = `<div class="card">
       </div>
       <div class="data-display"><div class="calc-value">{{calcValue}} <span class="data-affix">{{calculated}}</span></div></div>
     </div>`;
+
 currentDiv.render = function render(data) {
-  console.log(data);
+  // Triggered by proxy when current data is updated
   const testArr = data.map(data => {
     data.idName = data.name.split(" ")[0].toLowerCase();
     data.calculated = data.idName === "suction" ? "°SH" : "°SC";
@@ -60,7 +58,6 @@ currentDiv.render = function render(data) {
     });
   });
 
-  // this.innerHTML = testArr.toString();
   this.innerHTML = "";
   testArr.forEach(data => {
     this.innerHTML += data;
@@ -169,12 +166,11 @@ let activeDataSets = {
   }
 };
 
+// Fetch graph data
 fetch("/api/get-data")
   .then(res => res.json())
   .then(json => {
     let testDate = new Date(json[json.length - 1].timeStamp);
-    // testDate.setDate(testDate.getDate());
-    // testDate = json[json.length - 1].timeStamp;
     timeScale.initialize(testDate);
     graphData = {
       suctionTemperature: formatDataLog(json, "suction", "temperature"),
@@ -182,23 +178,8 @@ fetch("/api/get-data")
       liquidTemperature: formatDataLog(json, "liquid", "temperature"),
       liquidPressure: formatDataLog(json, "liquid", "pressure")
     };
-    // setTimeout(() => timeScale.shiftDown(), 5000);
     updateGraph(graphData, testDate);
   });
-
-var timeFormat = "MM/DD/YYYY HH:mm";
-
-function newDate(days) {
-  return moment()
-    .add(days, "d")
-    .toDate();
-}
-
-function newDateString(days) {
-  return moment()
-    .add(days, "d")
-    .format(timeFormat);
-}
 
 formatDataLog = (dataLog, line, type) => {
   const dataArr = dataLog.map(data => {
@@ -210,7 +191,7 @@ formatDataLog = (dataLog, line, type) => {
   return dataArr;
 };
 
-const updateGraph = (data, date) => {
+const updateGraph = data => {
   myChart.data.datasets.forEach(dataSet => {
     let labelString = dataSet.label.replace(/\s/g, "");
     labelString = labelString.charAt(0).toLowerCase() + labelString.slice(1);
@@ -220,16 +201,13 @@ const updateGraph = (data, date) => {
   myChart.update();
 };
 
+// Chart.js
 const lightThemeLines = "rgba(0, 0, 0, .1)";
 const darkThemeLines = "rgba(255, 255, 255, .1)";
 const ctx = document.getElementById("myChart");
 let myChart = new Chart(ctx, {
   type: "line",
   data: {
-    labels: [
-      // Date Objects
-      // newDate(6)
-    ],
     datasets: [
       {
         label: "Suction Temperature",
@@ -239,7 +217,6 @@ let myChart = new Chart(ctx, {
         backgroundColor: ["rgba(66,134,244, 0.2)"],
         borderColor: ["rgba(66,134,244,1)"],
         borderWidth: 1,
-        // borderDash: [5, 5],
         yAxisID: "temperature",
         pointRadius: 1
       },
@@ -251,7 +228,6 @@ let myChart = new Chart(ctx, {
         backgroundColor: ["rgba(214,8,46, 0.2)"],
         borderColor: ["rgba(214,8,46,1)"],
         borderWidth: 1,
-        // borderDash: [5, 5],
         yAxisID: "temperature",
         pointRadius: 1
       },
@@ -263,7 +239,6 @@ let myChart = new Chart(ctx, {
         backgroundColor: ["rgba(66,244,223, 0.2)"],
         borderColor: ["rgba(66,244,223,1)"],
         borderWidth: 1,
-        // borderDash: [5, 5],
         yAxisID: "pressure",
         pointRadius: 1
       },
@@ -275,7 +250,6 @@ let myChart = new Chart(ctx, {
         backgroundColor: ["rgba(244, 152, 66, 0.2)"],
         borderColor: ["rgba(244, 152, 66,1)"],
         borderWidth: 1,
-        // borderDash: [5, 5],
         yAxisID: "pressure",
         pointRadius: 1
       }
@@ -299,11 +273,6 @@ let myChart = new Chart(ctx, {
           type: "time",
           time: {
             max: new Date(),
-            // displayFormats: {
-            //   hour: "M/D hA"
-            // },
-            // format: timeFormat,
-            // round: "day",
             tooltipFormat: "ll HH:mm"
           },
           bounds: {
@@ -312,7 +281,7 @@ let myChart = new Chart(ctx, {
             }
           },
           scaleLabel: {
-            display: true,
+            display: false,
             labelString: "Date"
           }
         }

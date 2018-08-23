@@ -2,14 +2,12 @@ const express = require("express");
 const ptcalc = require("./utils");
 
 const router = express.Router();
-// const mongoose = require("mongoose");
 
 const Data = require("./models/Data");
 
 router.get("/test", (req, res) => res.json({ msg: "api test" }));
 
 router.post("/log-data", (req, res) => {
-  console.log(req.body);
   const newData = new Data({
     suction: {
       temperature: req.body.suction.temperature,
@@ -39,7 +37,6 @@ router.get("/current", (req, res) => {
       dataObj.subcooling = subcooling;
 
       res.json(dataObj);
-      console.log(dataObj);
     })
     .catch(err => res.json(err));
 });
